@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Kamisaur.GestureGeckoSample.MainPage"
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:gecko="clr-namespace:Xamarin.Forms.GestureGecko.Platforms.Shared;assembly=Xamarin.Forms.GestureGecko">
+
+    <Grid>
+
+        <gecko:ZoomableContainer
+            x:Name="gestureGecko"
+            InitialScale="1"
+            MaxScale="2">
+
+            <Grid
+                Padding="40"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                BackgroundColor="Green">
+                <Label Text="THIS IS RESIZABLE" FontSize="32" />
+            </Grid>
+        </gecko:ZoomableContainer>
+
+        <Button
+            Margin="20"
+            Text="click"
+            VerticalOptions="End"/>
+    </Grid>
+
+</ContentPage>
