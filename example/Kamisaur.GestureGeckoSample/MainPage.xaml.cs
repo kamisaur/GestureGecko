@@ -21,12 +21,12 @@ namespace Kamisaur.GestureGeckoSample
 
             var pinch = new PinchGestureRecognizer();
             pinch.PinchUpdated += PinchUpdated;
-            zoomableContent.GestureRecognizers.Add(pinch);
+            zoomableContainer.GestureRecognizers.Add(pinch);
         }
 
         public double MaxScale = 3;
 
-        double currentScale = 1;
+        //double currentScale = 1;
         double startScale = 1;
         double xOffset = 0;
         double yOffset = 0;
@@ -81,32 +81,28 @@ namespace Kamisaur.GestureGeckoSample
 
             if (e.Status == GestureStatus.Running)
             {
-                // Calculate the scale factor to be applied.
-                currentScale = CalculateScale(e.Scale, startScale, currentScale);
+                // 1. Calculate and apply the scale factor.
+                Content.Scale = CalculateScale(e.Scale, startScale, Content.Scale);
 
-                // Apply scale factor.
-                Content.Scale = currentScale;
-
-
-                // The ScaleOrigin is in relative coordinates to the wrapped user interface element,
-                // get the X pixel coordinate.
+                // 2. The ScaleOrigin is in relative coordinates to the wrapped user interface element,
+                // 2.1 Calculate and apply the X pixel coordinate.
                 Content.TranslationX = CalculateOffset(
                     e.ScaleOrigin.X
                     , Content.X
                     , Content.Width
                     , Content.Content.Width
                     , startScale
-                    , currentScale
+                    , Content.Scale
                     , xOffset);
 
-                // get the Y pixel coordinate.
+                // 2.2 Calculate and apply the Y pixel coordinate.
                 Content.TranslationY = CalculateOffset(
                     e.ScaleOrigin.Y
                     , Content.Y
                     , Content.Height
                     , Content.Content.Height
                     , startScale
-                    , currentScale
+                    , Content.Scale
                     , yOffset);
             }
 
