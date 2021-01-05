@@ -69,7 +69,7 @@ namespace Kamisaur.GestureGeckoSample
 
         private async void PinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
         {
-            var Content = zoomableContent;
+            var Content = zoomableContainer;
 
 
             if (e.Status == GestureStatus.Started)
