@@ -11,37 +11,44 @@ namespace Kamisaur.GestureGeckoSample
 {
     public partial class MainPage : ContentPage
     {
-        async void Button_Clicked(System.Object sender, System.EventArgs e)
+        void Button_Clicked(object sender, EventArgs e)
         {
         }
 
         public MainPage()
         {
             InitializeComponent();
+            BindingContext = this;
+
+            DeltaScale = 0;
+            StartScale = GestureStartedScale;
+            CurrentScale = Content.Scale;
+
 
             var pinch = new PinchGestureRecognizer();
             pinch.PinchUpdated += PinchUpdated;
             zoomableContainer.GestureRecognizers.Add(pinch);
         }
 
+
+
+
+        /// <summary>
+        /// Captures the scale of the element when gesure starts
+        /// </summary>
+        double GestureStartedScale { get; set; } = 1;
+
+
         public double MaxScale = 3;
+        double scaleTrashold = 1;
 
         //double currentScale = 1;
-        double startScale = 1;
         double xOffset = 0;
         double yOffset = 0;
 
-        double scaleTrashold = 1;
 
 
 
-        public double CalculateScale(double scale, double startScale, double currentScale)
-        {
-            currentScale += (scale - 1) * startScale;
-            currentScale = Math.Max(1, currentScale);
-
-            return currentScale;
-        }
 
         public double CalculateOffset(
             double scaleOriginCoordinate
@@ -67,14 +74,59 @@ namespace Kamisaur.GestureGeckoSample
         }
 
 
-        private async void PinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
+
+        private double _deltaScale;
+        public double DeltaScale
+        {
+            get => _deltaScale;
+            set { _deltaScale = value; OnPropertyChanged(); }
+        }
+        
+
+        private double _startScale;
+        public double StartScale
+        {
+            get => _startScale;
+            set { _startScale = value; OnPropertyChanged(); }
+        }
+        
+
+        private double _currentScale;
+        public double CurrentScale
+        {
+            get => _currentScale;
+            set { _currentScale = value; OnPropertyChanged(); }
+        }
+        
+
+        private double _scaleToAdd;
+        public double ScaleToAdd
+        {
+            get => _scaleToAdd;
+            set { _scaleToAdd = value; OnPropertyChanged(); }
+        }
+
+
+
+        public double CalculateScale(double deltaScale, double startScale, double currentScale)
+        {
+            var scaleToAdd = (deltaScale - 1) * startScale;
+            ScaleToAdd = scaleToAdd;
+
+            currentScale += scaleToAdd;
+            currentScale = Math.Max(1, currentScale);
+
+            return currentScale;
+        }
+
+        private void PinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
         {
             var Content = zoomableContainer;
 
 
             if (e.Status == GestureStatus.Started)
             {
-                startScale = Content.Scale;
+                GestureStartedScale = Content.Scale;
                 Content.AnchorX = 0;
                 Content.AnchorY = 0;
             }
@@ -82,7 +134,11 @@ namespace Kamisaur.GestureGeckoSample
             if (e.Status == GestureStatus.Running)
             {
                 // 1. Calculate and apply the scale factor.
-                Content.Scale = CalculateScale(e.Scale, startScale, Content.Scale);
+                Content.Scale = CalculateScale(e.Scale, GestureStartedScale, Content.Scale);
+                DeltaScale = e.Scale;
+                StartScale = GestureStartedScale;
+                CurrentScale = Content.Scale;
+
 
                 // 2. The ScaleOrigin is in relative coordinates to the wrapped user interface element,
                 // 2.1 Calculate and apply the X pixel coordinate.
@@ -91,7 +147,7 @@ namespace Kamisaur.GestureGeckoSample
                     , Content.X
                     , Content.Width
                     , Content.Content.Width
-                    , startScale
+                    , GestureStartedScale
                     , Content.Scale
                     , xOffset);
 
@@ -101,7 +157,7 @@ namespace Kamisaur.GestureGeckoSample
                     , Content.Y
                     , Content.Height
                     , Content.Content.Height
-                    , startScale
+                    , GestureStartedScale
                     , Content.Scale
                     , yOffset);
             }

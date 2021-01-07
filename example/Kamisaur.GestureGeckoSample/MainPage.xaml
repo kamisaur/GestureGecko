@@ -5,28 +5,74 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:gecko="clr-namespace:Xamarin.Forms.GestureGecko.Platforms.Shared;assembly=Xamarin.Forms.GestureGecko">
 
-    <ContentView x:Name="zoomableContainer">
+    <Grid>
+        <ContentView x:Name="zoomableContainer">
+            <StackLayout
+                Margin="0,100"
+                Padding="10,60"
+                HorizontalOptions="Center"
+                BackgroundColor="Green">
+                <Label Text="THIS IS RESIZABLE" FontSize="32" />
+                <Label Text="THIS IS RESIZABLE" FontSize="32" />
+                <Label Text="THIS IS RESIZABLE" FontSize="32" />
+                <Label Text="THIS IS RESIZABLE" FontSize="32" />
+                <Label Text="THIS IS RESIZABLE" FontSize="32" />
+                <Label Text="THIS IS RESIZABLE" FontSize="32" />
+                <Label Text="THIS IS RESIZABLE" FontSize="32" />
+                <Label Text="THIS IS RESIZABLE" FontSize="32" />
+                <Label Text="THIS IS RESIZABLE" FontSize="32" />
+                <Label Text="THIS IS RESIZABLE" FontSize="32" />
+                <Label Text="THIS IS RESIZABLE" FontSize="32" />
+                <Label Text="THIS IS RESIZABLE" FontSize="32" />
+            </StackLayout>
+        </ContentView>
+
 
         <StackLayout
-            Margin="0,100"
-            Padding="10,60"
-            HorizontalOptions="Center"
-            BackgroundColor="Green">
-            <Label Text="THIS IS RESIZABLE" FontSize="32" />
-            <Label Text="THIS IS RESIZABLE" FontSize="32" />
-            <Label Text="THIS IS RESIZABLE" FontSize="32" />
-            <Label Text="THIS IS RESIZABLE" FontSize="32" />
-            <Label Text="THIS IS RESIZABLE" FontSize="32" />
-            <Label Text="THIS IS RESIZABLE" FontSize="32" />
-            <Label Text="THIS IS RESIZABLE" FontSize="32" />
-            <Label Text="THIS IS RESIZABLE" FontSize="32" />
-            <Label Text="THIS IS RESIZABLE" FontSize="32" />
-            <Label Text="THIS IS RESIZABLE" FontSize="32" />
-            <Label Text="THIS IS RESIZABLE" FontSize="32" />
-            <Label Text="THIS IS RESIZABLE" FontSize="32" />
+            Margin="20"
+            Background="white"
+            VerticalOptions="End"
+            HorizontalOptions="StartAndExpand">
+
+            <Label>
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="DeltaScale: "/>
+                        <Span Text="{Binding DeltaScale}"/>
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+
+            <Label>
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="ScaleToAdd: "/>
+                        <Span Text="{Binding ScaleToAdd}"/>
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+
+            <Label>
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="StartScale: "/>
+                        <Span Text="{Binding StartScale}"/>
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+
+            <Label>
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="CurrentScale: "/>
+                        <Span Text="{Binding CurrentScale}"/>
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+
         </StackLayout>
 
-    </ContentView>
+    </Grid>
 
 
 </ContentPage>
