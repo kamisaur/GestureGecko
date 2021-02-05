@@ -21,9 +21,6 @@
                 <Label Text="THIS IS RESIZABLE" FontSize="32" />
                 <Label Text="THIS IS RESIZABLE" FontSize="32" />
                 <Label Text="THIS IS RESIZABLE" FontSize="32" />
-                <Label Text="THIS IS RESIZABLE" FontSize="32" />
-                <Label Text="THIS IS RESIZABLE" FontSize="32" />
-                <Label Text="THIS IS RESIZABLE" FontSize="32" />
             </StackLayout>
         </ContentView>
 

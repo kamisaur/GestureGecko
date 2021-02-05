@@ -20,153 +20,150 @@ namespace Kamisaur.GestureGeckoSample
             InitializeComponent();
             BindingContext = this;
 
-            DeltaScale = 0;
-            StartScale = GestureStartedScale;
-            CurrentScale = Content.Scale;
-
-
             var pinch = new PinchGestureRecognizer();
-            pinch.PinchUpdated += PinchUpdated;
+            pinch.PinchUpdated += OnPinchUpdated;
             zoomableContainer.GestureRecognizers.Add(pinch);
+
+            var pan = new PanGestureRecognizer();
+            pan.PanUpdated += OnPanUpdated;
+            zoomableContainer.GestureRecognizers.Add(pan);
+
+
+            var doubleTap = new TapGestureRecognizer() { NumberOfTapsRequired = 2 };
+            doubleTap.Tapped += OnDoubleTapped;
+            zoomableContainer.GestureRecognizers.Add(doubleTap);
+
         }
 
+        private const double MinScale = 1;
+        private const double MaxScale = 2;
+        private const double OVERSHOOT = 0.15;
+        private double StartScale;
 
 
-
-        /// <summary>
-        /// Captures the scale of the element when gesure starts
-        /// </summary>
-        double GestureStartedScale { get; set; } = 1;
-
-
-        public double MaxScale = 3;
-        double scaleTrashold = 1;
-
-        //double currentScale = 1;
-        double xOffset = 0;
-        double yOffset = 0;
-
-
-
-
-
-        public double CalculateOffset(
-            double scaleOriginCoordinate
-            , double contentCoordinate
-            , double containerDimension
-            , double contentDimension
-            , double startScale
-            , double currentScale
-            , double offset)
+        private void OnDoubleTapped(object sender, EventArgs e)
         {
-            double renderedCoordinate = contentCoordinate + offset;
-            double deltaCoordinate = renderedCoordinate / containerDimension;
-
-            double deltaDimension = containerDimension / (contentDimension * startScale);
-            double originCoordinate = (scaleOriginCoordinate - deltaCoordinate) * deltaDimension;
-
-            // Calculate the transformed element pixel coordinates.
-            double targetCoordinate = offset - (originCoordinate * contentDimension) * (currentScale - startScale);
-
-            // Apply translation based on the change in origin.
-            var translationCoordinate = targetCoordinate.Clamp(-contentDimension * (currentScale - 1), 0);
-            return translationCoordinate;
-        }
-
-
-
-        private double _deltaScale;
-        public double DeltaScale
-        {
-            get => _deltaScale;
-            set { _deltaScale = value; OnPropertyChanged(); }
-        }
-        
-
-        private double _startScale;
-        public double StartScale
-        {
-            get => _startScale;
-            set { _startScale = value; OnPropertyChanged(); }
-        }
-        
-
-        private double _currentScale;
-        public double CurrentScale
-        {
-            get => _currentScale;
-            set { _currentScale = value; OnPropertyChanged(); }
-        }
-        
-
-        private double _scaleToAdd;
-        public double ScaleToAdd
-        {
-            get => _scaleToAdd;
-            set { _scaleToAdd = value; OnPropertyChanged(); }
-        }
-
-
-
-        public double CalculateScale(double deltaScale, double startScale, double currentScale)
-        {
-            var scaleToAdd = (deltaScale - 1) * startScale;
-            ScaleToAdd = scaleToAdd;
-
-            currentScale += scaleToAdd;
-            currentScale = Math.Max(1, currentScale);
-
-            return currentScale;
-        }
-
-        private void PinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
-        {
-            var Content = zoomableContainer;
-
-
-            if (e.Status == GestureStatus.Started)
+            if (zoomableContainer.Content.Scale > MinScale)
             {
-                GestureStartedScale = Content.Scale;
-                Content.AnchorX = 0;
-                Content.AnchorY = 0;
+                zoomableContainer.Content.ScaleTo(MinScale, 250, Easing.CubicInOut);
+                zoomableContainer.Content.TranslateTo(0, 0, 250, Easing.CubicInOut);
             }
-
-            if (e.Status == GestureStatus.Running)
+            else
             {
-                // 1. Calculate and apply the scale factor.
-                Content.Scale = CalculateScale(e.Scale, GestureStartedScale, Content.Scale);
-                DeltaScale = e.Scale;
-                StartScale = GestureStartedScale;
-                CurrentScale = Content.Scale;
-
-
-                // 2. The ScaleOrigin is in relative coordinates to the wrapped user interface element,
-                // 2.1 Calculate and apply the X pixel coordinate.
-                Content.TranslationX = CalculateOffset(
-                    e.ScaleOrigin.X
-                    , Content.X
-                    , Content.Width
-                    , Content.Content.Width
-                    , GestureStartedScale
-                    , Content.Scale
-                    , xOffset);
-
-                // 2.2 Calculate and apply the Y pixel coordinate.
-                Content.TranslationY = CalculateOffset(
-                    e.ScaleOrigin.Y
-                    , Content.Y
-                    , Content.Height
-                    , Content.Content.Height
-                    , GestureStartedScale
-                    , Content.Scale
-                    , yOffset);
-            }
-
-            if (e.Status == GestureStatus.Completed)
-            {
-                xOffset = Content.TranslationX;
-                yOffset = Content.TranslationY;
+                zoomableContainer.Content.AnchorX = AnchorY = 0.5;
+                zoomableContainer.Content.ScaleTo(MaxScale, 250, Easing.CubicInOut);
             }
         }
+
+
+
+
+        private bool PreventPinchWhenMaxMinReached = false;
+        private bool DisablePinchFinishedAnimation = false;
+
+        private void OnPinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
+        {
+            switch (e.Status)
+            {
+                case GestureStatus.Started:
+                    StartScale = zoomableContainer.Content.Scale;
+                    zoomableContainer.Content.AnchorX = e.ScaleOrigin.X;
+                    zoomableContainer.Content.AnchorY = e.ScaleOrigin.Y;
+                    break;
+
+                case GestureStatus.Running:
+                    double current = zoomableContainer.Content.Scale + (e.Scale - 1) * StartScale;
+
+                    if(PreventPinchWhenMaxMinReached)
+                        zoomableContainer.Content.Scale = current.Clamp(MinScale * (1 - OVERSHOOT), MaxScale * (1 + OVERSHOOT));
+                    else
+                        zoomableContainer.Content.Scale = current;
+                    break;
+
+                case GestureStatus.Completed:
+                    if(!DisablePinchFinishedAnimation)
+                    {
+
+                        if (zoomableContainer.Content.Scale > MaxScale)
+                        {
+                            zoomableContainer.Content.ScaleTo(MaxScale, 250, Easing.SpringOut);
+                        }
+                        else if (zoomableContainer.Content.Scale < MinScale)
+                        {
+                            zoomableContainer.Content.ScaleTo(MinScale, 250, Easing.SpringOut);
+                        }
+                        else
+                        {
+                            //var finalWithEase = zoomableContainer.Content.Scale - (zoomableContainer.Content.Scale * 0.10);
+                            //zoomableContainer.Content.ScaleTo(finalWithEase, 250, Easing.SpringOut);
+                        }
+                    }
+                    break;
+            }
+        }
+
+        private double StartX, StartY;
+        private void OnPanUpdated(object sender, PanUpdatedEventArgs e)
+        {
+            switch (e.StatusType)
+            {
+                case GestureStatus.Started:
+                    StartX = (1 - zoomableContainer.Content.AnchorX) * zoomableContainer.Width;
+                    StartY = (1 - zoomableContainer.Content.AnchorY) * zoomableContainer.Height;
+
+                    StartXprop = StartX; //
+                    StartYprop = StartY; //
+                    break;
+
+                case GestureStatus.Running:
+                    var x = 1 - (StartX + e.TotalX) / zoomableContainer.Width;
+                    var y = 1 - (StartY + e.TotalY) / zoomableContainer.Height;
+
+                    NewXprop = x; //
+                    NewYprop = y; //
+
+                    zoomableContainer.Content.AnchorX = x.Clamp(0, 1);
+                    zoomableContainer.Content.AnchorY = y.Clamp(0, 1);
+                    break;
+
+                case GestureStatus.Completed:
+
+                    break;
+            }
+        }
+
+
+
+        private double _startXprop;
+        public double StartXprop
+        {
+            get => _startXprop;
+            set { _startXprop = value; OnPropertyChanged(); }
+        }
+
+
+        private double _startYprop;
+        public double StartYprop
+        {
+            get => _startYprop;
+            set { _startYprop = value; OnPropertyChanged(); }
+        }
+
+
+        private double _newXprop;
+        public double NewXprop
+        {
+            get => _newXprop;
+            set { _newXprop = value; OnPropertyChanged(); }
+        }
+
+
+        private double _newYprop;
+        public double NewYprop
+        {
+            get => _newYprop;
+            set { _newYprop = value; OnPropertyChanged(); }
+        }
+
     }
 }
